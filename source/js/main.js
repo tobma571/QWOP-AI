@@ -328,7 +328,10 @@ var Engine = Matter.Engine,
     World = Matter.World,
     Bodies = Matter.Bodies,
     Composite = Matter.Composite,
-    Composites = Matter.Composites;
+    Composites = Matter.Composites,
+    MouseConstraint = Matter.MouseConstraint,
+    Mouse = Matter.Mouse;
+
 
 // create an engine
 var engine = Engine.create();
@@ -339,15 +342,31 @@ var render = Render.create({
     engine: engine
 });
 
+var mouse = Mouse.create(render.canvas),
+    mouseConstraint = MouseConstraint.create(engine, {
+        mouse: mouse,
+        constraint: {
+            stiffness: 0.2,
+            render: {
+                visible: false
+            }
+        }
+    });
+
 // create ground
 var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
 
 var ragdolls = Composite.create();
 
-for (var i = 0; i < 1; i += 1) {
-    var ragdoll = createRagdoll(200, -1000 * i, 1.3);
+//for (var i = 0; i < 1; i += 1) {
+    var ragdoll = createRagdoll(200,1, 1.3);
     Composite.add(ragdolls, ragdoll);
-}
+//}
+
+
+
+World.add(engine.world, mouseConstraint);
+render.mouse = mouse;
 
 // add all of the bodies to the world
 World.add(engine.world, [ground, ragdolls]);
