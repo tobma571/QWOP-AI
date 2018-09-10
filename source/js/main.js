@@ -332,7 +332,6 @@ var Engine = Matter.Engine,
 
 // create an engine
 var engine = Engine.create();
-var world = engine.world;
 
 // create a renderer
 var render = Render.create({
@@ -340,26 +339,23 @@ var render = Render.create({
     engine: engine
 });
 
-// create two boxes and a ground
+// create ground
 var ground = Bodies.rectangle(400, 610, 810, 60, { isStatic: true });
 
+var ragdolls = Composite.create();
+
+for (var i = 0; i < 1; i += 1) {
+    var ragdoll = createRagdoll(200, -1000 * i, 1.3);
+    Composite.add(ragdolls, ragdoll);
+}
+
 // add all of the bodies to the world
-World.add(engine.world, ground);
+World.add(engine.world, [ground, ragdolls]);
 
 // run the engine
 Engine.run(engine);
 
 // run the renderer
 Render.run(render);
-
-var ragdolls = Composite.create();
-
-for (var i = 0; i < 1; i += 1) {
-    var ragdoll = createRagdoll(200, -1000 * i, 1.3);
-
-    Composite.add(ragdolls, ragdoll);
-}
-
-World.add(world, [ragdolls]);
 
 
