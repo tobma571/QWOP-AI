@@ -263,6 +263,23 @@ createRagdoll = function(x, y, scale, options) {
         }
     });
 
+    var upperToLowerLeftLeg2 = Constraint.create({
+        bodyA: leftUpperLeg,
+        bodyB: leftLowerLeg,
+        pointA: {
+            x: 5,
+            y: 20 * scale
+        },
+        pointB: {
+            x: 5,
+            y: -20 * scale
+        },
+        stiffness: 0.6,
+        render: {
+            visible: false
+        }
+    });
+
     var upperToLowerRightLeg = Constraint.create({
         bodyA: rightUpperLeg,
         bodyB: rightLowerLeg,
@@ -316,7 +333,7 @@ createRagdoll = function(x, y, scale, options) {
             upperToLowerLeftArm, upperToLowerRightArm, chestToLeftUpperArm,
             chestToRightUpperArm, headContraint, upperToLowerLeftLeg,
             upperToLowerRightLeg, chestToLeftUpperLeg, chestToRightUpperLeg,
-            legToLeg
+            legToLeg, upperToLowerLeftLeg2
         ]
     });
 
