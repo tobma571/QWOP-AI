@@ -50,7 +50,7 @@ createRagdoll = function(x, y, scale, options) {
             group: Body.nextGroup(true)
         },
         chamfer: {
-            radius: [20 * scale, 20 * scale, 26 * scale, 26 * scale]
+            radius: [10 * scale, 10 * scale, 16 * scale, 16 * scale]
         },
         render: {
             fillStyle: '#E0A423'
@@ -146,6 +146,19 @@ createRagdoll = function(x, y, scale, options) {
         }
     }, options);
 
+    var rightFootOptions = Common.extend({
+        label: 'right-foot',
+        collisionFilter: {
+            group: Body.nextGroup(true)
+        },
+        chamfer: {
+            radius: 2 * scale
+        },
+        render: {
+            fillStyle: '#FFBC42'
+        }
+    }, options);
+
     var head = Bodies.rectangle(x, y - 60 * scale, 34 * scale, 40 * scale, headOptions);
     var chest = Bodies.rectangle(x, y, 35 * scale, 80 * scale, chestOptions);
     var rightUpperArm = Bodies.rectangle(x, y - 15 * scale, 20 * scale, 40 * scale, rightArmOptions);
@@ -157,6 +170,8 @@ createRagdoll = function(x, y, scale, options) {
     var rightUpperLeg = Bodies.rectangle(x, y + 57 * scale, 20 * scale, 40 * scale, rightLegOptions);
     var rightLowerLeg = Bodies.rectangle(x, y + 97 * scale, 20 * scale, 60 * scale, rightLowerLegOptions);
     var leftFoot = Bodies.rectangle(x + 5 * scale, y + 127 * scale, 50 * scale, 10 * scale, leftFootOptions);
+    var rightFoot = Bodies.rectangle(x + 5 * scale, y + 127 * scale, 50 * scale, 10 * scale, rightFootOptions);
+
 
     var chestToRightUpperArm = Constraint.create({
         bodyA: chest,
@@ -375,9 +390,27 @@ createRagdoll = function(x, y, scale, options) {
         },
         stiffness: 1.0,
         render: {
-            visible: true
+            visible: false
         }
-    })
+    });
+
+    var rightLegToFoot = Constraint.create({
+        bodyA: rightLowerLeg,
+        bodyB: rightFoot,
+        pointA: {
+            x: 0,
+            y: 20 * scale
+        },
+        pointB: {
+            x: -25,
+            y: -10 * scale
+        },
+        stiffness: 1.0,
+        render: {
+            visible: false
+        }
+    });
+
     var headContraint = Constraint.create({
         bodyA: head,
         pointA: {
@@ -407,13 +440,13 @@ createRagdoll = function(x, y, scale, options) {
     var person = Composite.create({
         bodies: [
             chest, head, leftLowerLeg,
-            rightLowerLeg, leftUpperLeg, rightUpperLeg, leftFoot
+            rightLowerLeg, leftUpperLeg, rightUpperLeg, leftFoot, rightFoot
         ],
         constraints: [
             headContraint, upperToLowerLeftLeg,
             upperToLowerRightLeg, chestToLeftUpperLeg, chestToLeftUpperLeg2,
             chestToRightUpperLeg, chestToRightUpperLeg2,
-            upperToLowerLeftLeg2, upperToLowerRightLeg2, legToLeg, leftLegToFoot
+            upperToLowerLeftLeg2, upperToLowerRightLeg2, legToLeg, leftLegToFoot, rightLegToFoot
         ]
     });
 
