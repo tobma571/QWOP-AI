@@ -51,16 +51,22 @@ function reward() {
 }
 
 function getQValue(oldState, newState, action) {
-    const newQValue =  qTable[oldState][action] +
-        learningRate * (reward() + discountRate * findMaxQ(newState) - qTable[oldState][action]);
-    return newQValue;
+    try {
+        const newQValue = qTable[oldState][action] +
+            learningRate * (reward() + discountRate * findMaxQ(newState) - qTable[oldState][action]);
+        return newQValue;
+    }
+    catch(err) {
+        console.log("Failed to get QValue. oldState: " + oldState + ", NewState: " + newState);
+        return 0;
+    }
 }
 
 
 var oldState;
+currentState = getCurrentStateName();
 
 setInterval(function() {
-    currentState = getCurrentStateName();
 
     var shouldExplore = Math.random() < explorationRate;
 
