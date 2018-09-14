@@ -6,7 +6,7 @@ const availableActions = [0, 1, 2, 4, 6, 8, 9];
 const minExplorationRate = 0.01;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
-const decayRate = 0.05;
+const decayRate = 0.01;
 var learningRate = 1.0;
 var discountRate = 0.9;
 var lastStepDistance = totalDistTraveled;
@@ -25,7 +25,7 @@ function roundToDecimals(number) {
 
 function getCurrentStateName() {
     return roundToDecimals(l_kneeAngle) + " " + roundToDecimals(r_kneeAngle) + " "
-        + roundToDecimals(l_hipAngle)  + " " + roundToDecimals(r_hipAngle);
+        + roundToDecimals(l_hipAngle)  + " " + roundToDecimals(r_hipAngle) + " " + roundToDecimals(body.torso.GetAngle());
 }
 
 function randomizeAction() {
