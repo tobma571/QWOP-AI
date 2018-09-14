@@ -6,7 +6,7 @@ const availableActions = [0, 1, 2, 4, 6, 8, 9];
 const minExplorationRate = 0.01;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
-const decayRate = 0.005;
+const decayRate = 0.05;
 var learningRate = 1.0;
 var discountRate = 0.9;
 var lastStepDistance = totalDistTraveled;
@@ -20,7 +20,7 @@ var qTable = {};
 qTable[[currentState]] = createEmptyQRow();
 
 function roundToDecimals(number) {
-    return Math.round(number * 1) / 1;
+    return Math.round(number * 10) / 10;
 }
 
 function getCurrentStateName() {
@@ -46,6 +46,7 @@ function findIndexOfMaxQ(state) {
 
 function reward() {
     if (deathCount > lastDeathCount) return -10;
+    else if (body.torso.GetAngle() < -0.8 || body.torso.GetAngle() > 0.6) return -10;
     return totalDistTraveled - lastStepDistance;
 }
 
