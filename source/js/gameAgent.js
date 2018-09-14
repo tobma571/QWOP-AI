@@ -16,23 +16,36 @@ function createEmptyQRow() {
     return Array.apply(null, Array(availableActions.length)).map(Number.prototype.valueOf, 0);
 }
 
-var qTable = {currentState: createEmptyQRow()};
+var qTable = {};
+qTable[[currentState]] = createEmptyQRow();
+
+function roundToDecimals(number) {
+    return Math.round(number * 1) / 1;
+}
 
 function getCurrentStateName() {
-    return l_kneeAngle + " " + r_kneeAngle + " " + l_hipAngle  + " " + r_hipAngle;
+    return roundToDecimals(l_kneeAngle) + " " + roundToDecimals(r_kneeAngle) + " "
+        + roundToDecimals(l_hipAngle)  + " " + roundToDecimals(r_hipAngle);
+}
+
+function randomizeAction() {
+    return Math.round(Math.random() * (availableActions.length - 1));
 }
 
 function findMaxQ(state) {
-    const qRow = qTable.state;
+    const qRow = qTable[state];
     return Math.max.apply(null, qRow);
 }
 
 function findIndexOfMaxQ(state) {
-    const qRow = qTable.state;
-    return qRow.indexOf(findMaxQ(state));
+    const qRow = qTable[state];
+    const index = qRow.indexOf(findMaxQ(state));
+    if (index < 0) return randomizeAction();
+    return index;
 }
 
 function reward() {
+    if (deathCount > lastDeathCount) return -10;
     return totalDistTraveled - lastStepDistance;
 }
 
@@ -52,8 +65,10 @@ setInterval(function() {
     var newAction;
 
     if (shouldExplore) {
-        newAction = Math.round(Math.random() * (availableActions.length - 1));
+        console.log("Exploring");
+        newAction = randomizeAction();
     } else {
+        console.log("Educated guess");
         newAction = findIndexOfMaxQ(currentState);
     }
 
@@ -66,9 +81,7 @@ setInterval(function() {
     qTable[oldState][newAction] = getQValue(oldState, currentState, newAction);
 
     if (!qTable.hasOwnProperty(currentState)) {
-        //TODO: Never gets here, fix
-        console.log("Adding new row to qtable");
-        qTable[currentState] = createEmptyQRow();
+        qTable[[currentState]] = createEmptyQRow();
     }
 
     if (deathCount > lastDeathCount) {
@@ -78,5 +91,5 @@ setInterval(function() {
 
     explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
 
-}, 500);
+}, 100);
 
