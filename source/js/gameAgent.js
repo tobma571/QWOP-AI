@@ -50,8 +50,9 @@ function reward() {
 }
 
 function getQValue(oldState, newState, action) {
-    return qTable[oldState][action] +
+    const newQValue =  qTable[oldState][action] +
         learningRate * (reward() + discountRate * findMaxQ(newState) - qTable[oldState][action]);
+    return newQValue;
 }
 
 
@@ -78,11 +79,11 @@ setInterval(function() {
     oldState = currentState;
     currentState = getCurrentStateName();
 
-    qTable[oldState][newAction] = getQValue(oldState, currentState, newAction);
-
     if (!qTable.hasOwnProperty(currentState)) {
         qTable[[currentState]] = createEmptyQRow();
     }
+
+    qTable[oldState][newAction] = getQValue(oldState, currentState, newAction);
 
     if (deathCount > lastDeathCount) {
         console.log("Lost :(");
