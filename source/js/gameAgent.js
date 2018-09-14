@@ -85,6 +85,8 @@ setInterval(function() {
 
     qTable[oldState][newAction] = getQValue(oldState, currentState, newAction);
 
+    lastStepDistance = totalDistTraveled;
+
     if (deathCount > lastDeathCount) {
         console.log("Lost :(");
         lastDeathCount = deathCount;
