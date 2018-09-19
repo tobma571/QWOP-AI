@@ -6,9 +6,9 @@ const availableActions = [0, 1, 2, 4, 6, 8, 9];
 const minExplorationRate = 0.01;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
-const decayRate = 0.01;
+const decayRate = 0.005;
 var learningRate = 1.0;
-var discountRate = 0.9;
+var discountRate = 0.8;
 var lastStepDistance = totalDistTraveled;
 var currentState = getCurrentStateName();
 
@@ -23,9 +23,12 @@ function roundToDecimals(number) {
     return Math.round(number * 10) / 10;
 }
 
+function getDistBetweenFeet() {
+    return getLeftFootX() - getRightFootX();
+}
+
 function getCurrentStateName() {
-    return roundToDecimals(l_kneeAngle) + " " + roundToDecimals(r_kneeAngle) + " "
-        + roundToDecimals(l_hipAngle)  + " " + roundToDecimals(r_hipAngle) + " " + roundToDecimals(body.torso.GetAngle());
+    return Math.round(getDistBetweenFeet() / 30) + " " + roundToDecimals(body.torso.GetAngle() / 5);
 }
 
 function randomizeAction() {
@@ -46,8 +49,13 @@ function findIndexOfMaxQ(state) {
 
 function reward() {
     if (deathCount > lastDeathCount) return -10;
-    else if (body.torso.GetAngle() < -0.8 || body.torso.GetAngle() > 0.6) return -10;
-    return totalDistTraveled - lastStepDistance;
+    //else if (body.torso.GetAngle() < -0.8 || body.torso.GetAngle() > 0.6) return -10;
+    const dx = 5 * (totalDistTraveled - lastStepDistance);
+    const feetReward = 0.01 * Math.abs(getDistBetweenFeet() - lastDistanceBetweenFeet);
+    const angleReward = -Math.abs(body.torso.GetAngle());
+    const closenessToGoal = totalDistTraveled / goalDistance;
+    //console.log("Reward is " + dx + " " + feetReward + " " + angleReward + " " + closenessToGoal);
+    return dx + feetReward + angleReward + closenessToGoal;
 }
 
 function getQValue(oldState, newState, action) {
@@ -66,8 +74,9 @@ function getQValue(oldState, newState, action) {
 var oldState;
 currentState = getCurrentStateName();
 
-setInterval(function() {
+var lastDistanceBetweenFeet = getDistBetweenFeet();
 
+setInterval(function() {
     var shouldExplore = Math.random() < explorationRate;
 
     var newAction;
@@ -79,6 +88,7 @@ setInterval(function() {
         console.log("Educated guess");
         newAction = findIndexOfMaxQ(currentState);
     }
+
 
     // Calls game function to move
     updateKeyState(availableActions[newAction]);
@@ -92,10 +102,11 @@ setInterval(function() {
 
     qTable[oldState][newAction] = getQValue(oldState, currentState, newAction);
 
+    lastDistanceBetweenFeet = getDistBetweenFeet();
     lastStepDistance = totalDistTraveled;
 
     if (deathCount > lastDeathCount) {
-        console.log("Lost :(");
+        console.log("Lost :( Size of QTable: " + Object.keys(qTable).length + " exploration rate is: " + explorationRate);
         lastDeathCount = deathCount;
     }
 
