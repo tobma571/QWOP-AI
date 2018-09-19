@@ -44,6 +44,7 @@ var ctx = canv.getContext('2d');
 var cWidth = canv.width = 1054;
 var cHeight = canv.height = cWidth;
 var mainLoopPaused = false;
+const animationSpeed = 0.01;
 
 min = Math.min;
 max = Math.max;
@@ -1026,7 +1027,7 @@ function mainLoop() {
             setTimeout(function() {
                 respawning = false;
                 activateWalkDelay();
-            },1000)
+            },animationSpeed)
         }
     }
 }
@@ -1035,10 +1036,10 @@ function activateWalkDelay() {
     walkDelay = true;
     setTimeout(function() {
         walkDelay = false;
-    },1000);
+    },animationSpeed);
 }
 
-setInterval(mainLoop,1000*freq);
+setInterval(mainLoop,animationSpeed*freq);
 resetRunner();
 
 function center_of_mass(body) {
