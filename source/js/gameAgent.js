@@ -51,7 +51,7 @@ function reward() {
     if (deathCount > lastDeathCount) return -10;
     //else if (body.torso.GetAngle() < -0.8 || body.torso.GetAngle() > 0.6) return -10;
     const dx = 5 * (totalDistTraveled - lastStepDistance);
-    const feetReward = 0.01 * Math.abs(getDistBetweenFeet() - lastDistanceBetweenFeet);
+    const feetReward = 0.01 * Math.abs(getDistBetweenFeet() - lastDistanceBetweenFeet) + 0.1 * totalStepsTraveled;
     const angleReward = -Math.abs(body.torso.GetAngle());
     const closenessToGoal = totalDistTraveled / goalDistance;
     //console.log("Reward is " + dx + " " + feetReward + " " + angleReward + " " + closenessToGoal);
