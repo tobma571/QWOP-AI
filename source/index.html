@@ -23,13 +23,12 @@
 
         <script src="js/qTableFileHandling.js"></script>
 
+        <div id="file-loader-container">
+            Upload QTable: <input type="file" id="inputFile" onchange="importQTableFromFile(this.files)">
+        </div>
         <div id="download-container">
             <a href="javascript:void(0);" id="generate-link" onclick='exportQTable(qTable)'>Generate QTable link</a>
-            <a href="#" id="download-link" download>Download QTable</a>
-            <a href="js/robot.js" download>test</a>
-        </div>
-        <div id="file-loader-container">
-            <input type="file" id="inputFile" onchange="importQTableFromFile(this.files)">
+            <a href="#" id="download-link" download style="visibility: hidden;">Download QTable</a>
         </div>
 
 

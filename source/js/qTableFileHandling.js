@@ -25,5 +25,8 @@ function importQTableFromFile(filename) {
         }
     };
     reader.readAsText(file);
-    return importedQTable;
+    // TODO:  Not sure if this might cause errors due to concurrency between this code and gameAgent
+    qTable = importedQTable;
 }
+
+
