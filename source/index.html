@@ -21,6 +21,16 @@
 
         <canvas id='canvas'></canvas>
 
+        <script src="js/qTableFileHandling.js"></script>
+
+        <div id="file-loader-container">
+            Upload QTable: <input type="file" id="inputFile" onchange="importQTableFromFile(this.files)">
+        </div>
+        <div id="download-container">
+            <a href="javascript:void(0);" id="generate-link" onclick='exportQTable(qTable)'>Generate QTable link</a>
+            <a href="#" id="download-link" download style="visibility: hidden;">Download QTable</a>
+        </div>
+
 
         <!-- Add your site or application content here -->
         <script src="js/vendor/modernizr-3.5.0.min.js"></script>
@@ -31,6 +41,7 @@
         <script src="js/lib/Box2d-min.js"></script>
         <script src="js/game.js"></script>
         <script src="js/gameAgent.js"></script>
+
 
     </body>
 </html>
