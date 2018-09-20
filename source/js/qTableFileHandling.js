@@ -12,3 +12,18 @@ function makeDownloadLink(csvContent) {
     link.setAttribute("download", deathCount + ".csv");
     link.click();
 }
+
+function importQTableFromFile(filename) {
+    var file = filename[0];
+    var reader = new FileReader();
+    var importedQTable = {};
+    reader.onload = function(progressEvent){
+        var lines = this.result.split(/\r\n|\n/);
+        for (var line = 0; line < lines.length; line++) {
+            var qRow = lines[line].split(',');
+            importedQTable[qRow[0]] = qRow.slice(1, qRow.length);
+        }
+    };
+    reader.readAsText(file);
+    return importedQTable;
+}
