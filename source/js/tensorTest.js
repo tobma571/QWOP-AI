@@ -13,21 +13,21 @@ var discountRate = 0.8;
 var lastStepDistance = totalDistTraveled;
 var currentState = getCurrentState();
 
+    const hiddenLayer = tf.layers.dense({
+        units: 10,
+        inputShape: [2],
+        activation: 'relu'
+    });
 
-const hiddenLayer = tf.layers.dense({
-    units: 10,
-    inputShape: [2],
-    activation: 'relu'
-});
+    const outputLayer = tf.layers.dense({
+        units: availableActions.length
+    });
 
-const outputLayer = tf.layers.dense({
-    units: availableActions.length
-});
+    model.add(hiddenLayer);
+    model.add(outputLayer);
 
-model.add(hiddenLayer);
-model.add(outputLayer);
+    model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
-model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
 
 
 function getDistBetweenFeet() {
@@ -52,10 +52,18 @@ function reward() {
 }
 
 function newQforAction(prediction, action) {
-    //TODO fix syntax
     const currentPrediction = model.predict(currentState);
-    prediction[action] = prediction[action] + learningRate * (reward() + discountRate * currentPrediction.max() - prediction[action]);
-    return prediction;
+    var newTensorList = [];
+    for (var i = 0; i < availableActions.length; i++) {
+        if (i != action)
+            newTensorList.push(prediction[i]);
+        else
+            newTensorList.push(prediction[action] + learningRate * (reward() + discountRate * currentPrediction.max() - prediction[action]));
+    }
+    prediction.dispose();
+    currentPrediction.dispose();
+    return tf.tensor(newTensorList, [1, availableActions.length]);
+
 }
 
 
@@ -64,18 +72,31 @@ currentState = getCurrentState();
 
 var lastDistanceBetweenFeet = getDistBetweenFeet();
 
-async function waitForFitting(newQ) {
-    var result = await model.fit(oldState, newQ);
+//async function waitForFitting(newQ) {
+//    var result = await model.fit(oldState, newQ);
+//}
+function waitForFitting(newQ) {
+
+    return async () => {
+        await model.fit(oldState,newQ).dispose()
+};
+    //result.dispose();
 }
+
+
 
 
 var promise = Promise.resolve(true);
 
 setInterval(function () {
+
+    console.log("1 " + tf.memory().numTensors);
+
     var shouldExplore = Math.random() < explorationRate;
 
     var newAction;
-    var prediction = model.predict(currentState);
+    var prediction = tf.tidy(() => {return model.predict(currentState)});
+    console.log("2 " + tf.memory().numTensors);
 
     if (shouldExplore) {
         console.log("Exploring");
@@ -85,16 +106,31 @@ setInterval(function () {
         newAction = prediction.argMax(1).dataSync()[0];
         console.log("Selecting action " + newAction + " for prediction " + prediction);
     }
+    console.log("3 " + tf.memory().numTensors);
 
     // Calls game function to move
     updateKeyState(availableActions[newAction]);
 
-    oldState = currentState;
-    currentState = getCurrentState();
+    if (typeof oldState !== 'undefined')
+        oldState.dispose();
 
-    const newQ = newQforAction(prediction, newAction);
+    oldState = currentState;
+    currentState.dispose();
+    currentState = getCurrentState();
+    console.log("4 " + tf.memory().numTensors);
+
+    if (typeof newQ !== 'undefined')
+        newQ.dispose();
+
+    var newQ = newQforAction(prediction, newAction);
+
+    console.log("5 " + tf.memory().numTensors);
+
+    prediction.dispose();
 
     waitForFitting(newQ);
+    newQ.dispose();
+    console.log("6 " + tf.memory().numTensors);
 
     lastDistanceBetweenFeet = getDistBetweenFeet();
     lastStepDistance = totalDistTraveled;
@@ -105,6 +141,9 @@ setInterval(function () {
     }
 
     explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
+    console.log("7 " + tf.memory().numTensors);
+
+
 
 }, 100);
 
