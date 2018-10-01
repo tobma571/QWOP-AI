@@ -7,15 +7,20 @@ const availableActions = [0, 1, 2, 4, 6, 8, 9];
 const minExplorationRate = 0.01;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
-const decayRate = 0.005;
+const decayRate = 0.001;
 var learningRate = 1.0;
 var discountRate = 0.8;
 var lastStepDistance = totalDistTraveled;
 var currentState = getCurrentState();
 
-    const hiddenLayer = tf.layers.dense({
+    const hiddenLayer1 = tf.layers.dense({
         units: 10,
         inputShape: [2],
+        activation: 'relu'
+    });
+
+    const hiddenLayer2 = tf.layers.dense({
+        units: 10,
         activation: 'relu'
     });
 
@@ -23,7 +28,8 @@ var currentState = getCurrentState();
         units: availableActions.length
     });
 
-    model.add(hiddenLayer);
+    model.add(hiddenLayer1);
+    model.add(hiddenLayer2)
     model.add(outputLayer);
 
     model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
@@ -52,18 +58,19 @@ function reward() {
 }
 
 function newQforAction(prediction, action) {
-    const currentPrediction = model.predict(currentState);
-    var newTensorList = [];
-    for (var i = 0; i < availableActions.length; i++) {
-        if (i != action)
-            newTensorList.push(prediction[i]);
-        else
-            newTensorList.push(prediction[action] + learningRate * (reward() + discountRate * currentPrediction.max() - prediction[action]));
-    }
-    prediction.dispose();
-    currentPrediction.dispose();
-    return tf.tensor(newTensorList, [1, availableActions.length]);
-
+   return tf.tidy(() => {
+        const currentPrediction = model.predict(currentState);
+        var newTensorList = [];
+        for (var i = 0; i < availableActions.length; i++) {
+            if (i != action)
+                newTensorList.push(prediction[i]);
+            else
+                newTensorList.push(prediction[action] + learningRate * (reward() + discountRate * currentPrediction.max() - prediction[action]));
+        }
+        prediction.dispose();
+        currentPrediction.dispose();
+        return tf.tensor(newTensorList, [1, availableActions.length]);
+    });
 }
 
 
@@ -90,23 +97,23 @@ var promise = Promise.resolve(true);
 
 setInterval(function () {
 
-    console.log("1 " + tf.memory().numTensors);
+    //console.log("1 " + tf.memory().numTensors);
 
     var shouldExplore = Math.random() < explorationRate;
 
     var newAction;
     var prediction = tf.tidy(() => {return model.predict(currentState)});
-    console.log("2 " + tf.memory().numTensors);
+    //console.log("2 " + tf.memory().numTensors);
 
     if (shouldExplore) {
         console.log("Exploring");
         newAction = randomizeAction();
     } else {
         console.log("Educated guess");
-        newAction = prediction.argMax(1).dataSync()[0];
-        console.log("Selecting action " + newAction + " for prediction " + prediction);
+        newAction = tf.tidy(() => { return prediction.argMax(1).dataSync()[0]});
+        //console.log("Selecting action " + newAction + " for prediction " + prediction);
     }
-    console.log("3 " + tf.memory().numTensors);
+    //console.log("3 " + tf.memory().numTensors);
 
     // Calls game function to move
     updateKeyState(availableActions[newAction]);
@@ -117,20 +124,20 @@ setInterval(function () {
     oldState = currentState;
     currentState.dispose();
     currentState = getCurrentState();
-    console.log("4 " + tf.memory().numTensors);
+    //console.log("4 " + tf.memory().numTensors);
 
     if (typeof newQ !== 'undefined')
         newQ.dispose();
 
     var newQ = newQforAction(prediction, newAction);
 
-    console.log("5 " + tf.memory().numTensors);
+    //console.log("5 " + tf.memory().numTensors);
 
     prediction.dispose();
 
     waitForFitting(newQ);
     newQ.dispose();
-    console.log("6 " + tf.memory().numTensors);
+    //console.log("6 " + tf.memory().numTensors);
 
     lastDistanceBetweenFeet = getDistBetweenFeet();
     lastStepDistance = totalDistTraveled;
@@ -141,7 +148,7 @@ setInterval(function () {
     }
 
     explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
-    console.log("7 " + tf.memory().numTensors);
+    //console.log("7 " + tf.memory().numTensors);
 
 
 
