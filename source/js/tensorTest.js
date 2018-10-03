@@ -14,6 +14,13 @@ var lastStepDistance = totalDistTraveled;
 var currentState = getCurrentState();
 var numLoops = 0;
 
+var rewardFunction = 0;
+
+function changeReward() {
+    rewardFunction = document.getElementById("rewardFunctionDecision").value;
+    playGame();
+}
+
 const hiddenLayer1 = tf.layers.dense({
     units: 10,
     inputShape: [2],
@@ -30,7 +37,7 @@ const outputLayer = tf.layers.dense({
 });
 
 model.add(hiddenLayer1);
-model.add(hiddenLayer2)
+model.add(hiddenLayer2);
 model.add(outputLayer);
 
 model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
@@ -51,6 +58,25 @@ function getCurrentState() {
 
 function reward() {
     if (deathCount > lastDeathCount) return -10;
+    switch (rewardFunction) {
+        case 0:
+            return reward1();
+        case 1:
+            return reward1();
+        case 2:
+            return reward2();
+        case 3:
+            return reward3();
+        case 4:
+            return reward4();
+        case 5:
+            return reward5();
+        case 6:
+            return reward6();
+    }
+}
+
+function reward1() {
     const dx = 5 * (totalDistTraveled - lastStepDistance);
     const feetReward = 0.01 * Math.abs(getDistBetweenFeet() - lastDistanceBetweenFeet) + 0.1 * totalStepsTraveled;
     const angleReward = -Math.abs(body.torso.GetAngle());
@@ -59,22 +85,18 @@ function reward() {
 }
 
 function reward2() {
-    if (deathCount > lastDeathCount) return -10;
     return totalDistTraveled / goalDistance;
 }
 
 function reward3() {
-    if (deathCount > lastDeathCount) return -10;
     return totalDistTraveled - lastStepDistance;
 }
 
 function reward4() {
-    if (deathCount > lastDeathCount) return -10;
     return totalDistTraveled / numLoops;
 }
 
 function reward5() {
-    if (deathCount > lastDeathCount) return -10;
     const dx = 5 * (totalDistTraveled - lastStepDistance);
     const feetReward = 0.01 * Math.abs(getDistBetweenFeet() - lastDistanceBetweenFeet) + 0.1 * totalStepsTraveled;
     const closenessToGoal = totalDistTraveled / goalDistance;
@@ -84,7 +106,6 @@ function reward5() {
 var lastTotalStepsTraveled;
 
 function reward6() {
-    if (deathCount > lastDeathCount) return -10;
     const dx = 5 * (totalDistTraveled - lastStepDistance);
     const feetReward = totalStepsTraveled - lastTotalStepsTraveled;
     lastTotalStepsTraveled = totalStepsTraveled;
@@ -127,60 +148,64 @@ function waitForFitting(newQ) {
 
 
 
+function playGame() {
+    var promise = Promise.resolve(true);
 
-var promise = Promise.resolve(true);
+    var gameLoop = setInterval(function () {
+        // Keep on top to avoid division by 0 in reward function
+        numLoops += 1;
 
-var gameLoop = setInterval(function () {
-    // Keep on top to avoid division by 0 in reward function
-    numLoops += 1;
+        var shouldExplore = Math.random() < explorationRate;
 
-    var shouldExplore = Math.random() < explorationRate;
+        var newAction;
+        var prediction = tf.tidy(() => {return model.predict(currentState)});
 
-    var newAction;
-    var prediction = tf.tidy(() => {return model.predict(currentState)});
+        if (shouldExplore) {
+            console.log("Exploring");
+            newAction = randomizeAction();
+        } else {
+            console.log("Educated guess");
+            newAction = tf.tidy(() => {return prediction.argMax(1).dataSync()[0]});
+        }
 
-    if (shouldExplore) {
-        console.log("Exploring");
-        newAction = randomizeAction();
-    } else {
-        console.log("Educated guess");
-        newAction = tf.tidy(() => { return prediction.argMax(1).dataSync()[0]});
-    }
+        // Calls game function to move
+        updateKeyState(availableActions[newAction]);
 
-    // Calls game function to move
-    updateKeyState(availableActions[newAction]);
+        if (typeof oldState !== 'undefined')
+            oldState.dispose();
 
-    if (typeof oldState !== 'undefined')
-        oldState.dispose();
+        oldState = currentState;
+        currentState.dispose();
+        currentState = getCurrentState();
 
-    oldState = currentState;
-    currentState.dispose();
-    currentState = getCurrentState();
+        if (typeof newQ !== 'undefined')
+            newQ.dispose();
 
-    if (typeof newQ !== 'undefined')
+        var newQ = newQforAction(prediction, newAction);
+
+        prediction.dispose();
+
+        waitForFitting(newQ);
         newQ.dispose();
 
-    var newQ = newQforAction(prediction, newAction);
+        lastDistanceBetweenFeet = getDistBetweenFeet();
+        lastStepDistance = totalDistTraveled;
 
-    prediction.dispose();
+        if (deathCount > lastDeathCount) {
+            console.log("Lost :(");
+            lastDeathCount = deathCount;
+        }
 
-    waitForFitting(newQ);
-    newQ.dispose();
+        explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
 
-    lastDistanceBetweenFeet = getDistBetweenFeet();
-    lastStepDistance = totalDistTraveled;
 
-    if (deathCount > lastDeathCount) {
-        console.log("Lost :(");
-        lastDeathCount = deathCount;
+    }, 100);
+
+    if (deathCount > 1000) {
+        clearInterval(gameLoop);
+        return;
     }
-
-    explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
-
-
-}, 100);
-
-if (deathCount > 1000) clearInterval(gameLoop);
+}
 
 
 /*
