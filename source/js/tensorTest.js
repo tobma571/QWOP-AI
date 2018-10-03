@@ -1,4 +1,6 @@
-const model = tf.sequential();
+var model = tf.sequential();
+
+var isPaused = false;
 
 const goalDistance = 100;
 var lastDeathCount = deathCount;
@@ -97,62 +99,64 @@ var promise = Promise.resolve(true);
 
 setInterval(function () {
 
-    //console.log("1 " + tf.memory().numTensors);
+    if (!isPaused) {
 
-    var shouldExplore = Math.random() < explorationRate;
+        //console.log("1 " + tf.memory().numTensors);
 
-    var newAction;
-    var prediction = tf.tidy(() => {return model.predict(currentState)});
-    //console.log("2 " + tf.memory().numTensors);
+        var shouldExplore = Math.random() < explorationRate;
 
-    if (shouldExplore) {
-        console.log("Exploring");
-        newAction = randomizeAction();
-    } else {
-        console.log("Educated guess");
-        newAction = tf.tidy(() => { return prediction.argMax(1).dataSync()[0]});
-        //console.log("Selecting action " + newAction + " for prediction " + prediction);
-    }
-    //console.log("3 " + tf.memory().numTensors);
+        var newAction;
+        var prediction = tf.tidy(() => {return model.predict(currentState)});
+        //console.log("2 " + tf.memory().numTensors);
 
-    // Calls game function to move
-    updateKeyState(availableActions[newAction]);
+        if (shouldExplore) {
+            console.log("Exploring");
+            newAction = randomizeAction();
+        } else {
+            console.log("Educated guess");
+            newAction = tf.tidy(() => { return prediction.argMax(1).dataSync()[0]});
+            //console.log("Selecting action " + newAction + " for prediction " + prediction);
+        }
+        //console.log("3 " + tf.memory().numTensors);
 
-    if (typeof oldState !== 'undefined')
-        oldState.dispose();
+        // Calls game function to move
+        updateKeyState(availableActions[newAction]);
 
-    oldState = currentState;
-    currentState.dispose();
-    currentState = getCurrentState();
-    //console.log("4 " + tf.memory().numTensors);
+        if (typeof oldState !== 'undefined')
+            oldState.dispose();
 
-    if (typeof newQ !== 'undefined')
+        oldState = currentState;
+        currentState.dispose();
+        currentState = getCurrentState();
+        //console.log("4 " + tf.memory().numTensors);
+
+        if (typeof newQ !== 'undefined')
+            newQ.dispose();
+
+        var newQ = newQforAction(prediction, newAction);
+
+        //console.log("5 " + tf.memory().numTensors);
+
+        prediction.dispose();
+
+        waitForFitting(newQ);
         newQ.dispose();
+        //console.log("6 " + tf.memory().numTensors);
 
-    var newQ = newQforAction(prediction, newAction);
+        lastDistanceBetweenFeet = getDistBetweenFeet();
+        lastStepDistance = totalDistTraveled;
 
-    //console.log("5 " + tf.memory().numTensors);
+        if (deathCount > lastDeathCount) {
+            console.log("Lost :(");
+            lastDeathCount = deathCount;
+        }
 
-    prediction.dispose();
-
-    waitForFitting(newQ);
-    newQ.dispose();
-    //console.log("6 " + tf.memory().numTensors);
-
-    lastDistanceBetweenFeet = getDistBetweenFeet();
-    lastStepDistance = totalDistTraveled;
-
-    if (deathCount > lastDeathCount) {
-        console.log("Lost :(");
-        lastDeathCount = deathCount;
+        explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
+        //console.log("7 " + tf.memory().numTensors);
     }
 
-    explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
-    //console.log("7 " + tf.memory().numTensors);
 
-
-
-}, 100);
+}, 1000);
 
 
 /*
