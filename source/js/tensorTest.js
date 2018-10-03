@@ -1,4 +1,6 @@
-const model = tf.sequential();
+var model = tf.sequential();
+
+var isPaused = false;
 
 const goalDistance = 100;
 var lastDeathCount = deathCount;
@@ -206,12 +208,3 @@ function playGame() {
         return;
     }
 }
-
-
-/*
-*     promise = promise.then(function () {
-        return new Promise(function (resolve) {
-            playGame();
-        });
-    });
-* */

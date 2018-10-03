@@ -22,14 +22,22 @@
 
         <canvas id='canvas'></canvas>
 
-        <script src="js/qTableFileHandling.js"></script>
+
 
         <div id="file-loader-container">
-            Upload QTable: <input type="file" id="inputFile" onchange="importQTableFromFile(this.files)">
+            <p>Upload QTable: <input type="file" id="inputFile" onchange="importQTableFromFile(this.files)"></p>
+            <p>Upload QNN JSON: <input type="file" id="qnnJsonFile">
+            Upload QNN weights: <input type="file" id="qnnWeightsFile"><input id="loadQNN" type="button" value="Load QNN" onclick="loadQnn();" /></p>
         </div>
+
         <div id="download-container">
-            <a href="javascript:void(0);" id="generate-link" onclick='exportQTable(qTable)'>Generate QTable link</a>
-            <a href="#" id="download-link" download style="visibility: hidden;">Download QTable</a>
+            <p>
+                <a href="javascript:void(0);" id="generate-link" onclick='exportQTable(qTable)'>Generate QTable link</a>
+                <a href="#" id="download-link" download style="visibility: hidden;">Download QTable</a>
+            </p>
+            <p>
+                <a href="javascript:void(0);" id="download-qnn" onclick="downloadQnn()">Download QNN</a>
+            </p>
         </div>
         <div id="rewardDecisionContainer">
             <input type="number" id="rewardFunctionDecision">
@@ -47,6 +55,8 @@
         <script src="js/game.js"></script><!--
         <script src="js/gameAgent.js"></script> -->
         <script src="js/tensorTest.js"></script>
+        <script src="js/qTableFileHandling.js"></script>
+        <script src="js/qnnFileHandling.js"></script>
 
     </body>
 </html>
