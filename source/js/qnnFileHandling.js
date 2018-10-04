@@ -3,16 +3,18 @@ async function loadQnn() {
     const jsonUpload = document.getElementById('qnnJsonFile');
     const weightsUpload = document.getElementById('qnnWeightsFile');
 
-    if (jsonUpload.length == 0 || weightsUpload.length == 0) {
+    if (jsonUpload.length === 0 || weightsUpload.length === 0) {
         alert("No QNN files selected");
         return;
     }
 
     model = await tf.loadModel(
         tf.io.browserFiles([jsonUpload.files[0], weightsUpload.files[0]]));
+    explorationRate = minExplorationRate;
+    console.log("Loaded QNN from file");
 }
 
 async function downloadQnn() {
     //Only works in Chrome for some reason
-    await model.save('downloads://my-model-1');
+    await model.save('downloads://' + rewardFunction + " " + Math.round(farthestDistTraveled) + " " + deathCount + " " + numLoops);
 }

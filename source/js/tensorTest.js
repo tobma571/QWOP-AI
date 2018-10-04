@@ -1,50 +1,8 @@
-var model = tf.sequential();
-
-var isPaused = false;
-
-const goalDistance = 100;
 var lastDeathCount = deathCount;
 var n = 0;
-const availableActions = [0, 1, 2, 4, 6, 8, 9];
-const minExplorationRate = 0.01;
-const maxExplorationRate = 1.0;
-var explorationRate = maxExplorationRate;
-const decayRate = 0.001;
-var learningRate = 1.0;
-var discountRate = 0.8;
 var lastStepDistance = totalDistTraveled;
 var currentState = getCurrentState();
 var numLoops = 0;
-
-var rewardFunction = 0;
-
-function changeReward() {
-    rewardFunction = document.getElementById("rewardFunctionDecision").value;
-    playGame();
-}
-
-const hiddenLayer1 = tf.layers.dense({
-    units: 10,
-    inputShape: [2],
-    activation: 'relu'
-});
-
-const hiddenLayer2 = tf.layers.dense({
-    units: 10,
-    activation: 'relu'
-});
-
-const outputLayer = tf.layers.dense({
-    units: availableActions.length
-});
-
-model.add(hiddenLayer1);
-model.add(hiddenLayer2);
-model.add(outputLayer);
-
-model.compile({loss: 'meanSquaredError', optimizer: 'sgd'});
-
-
 
 function getDistBetweenFeet() {
     return getLeftFootX() - getRightFootX();
@@ -121,13 +79,14 @@ function newQforAction(prediction, action) {
         var newTensorList = [];
         for (var i = 0; i < availableActions.length; i++) {
             if (i != action)
-                newTensorList.push(prediction[i]);
+                newTensorList.push(prediction.dataSync()[i]);
             else
-                newTensorList.push(prediction[action] + learningRate * (reward() + discountRate * currentPrediction.max() - prediction[action]));
+                newTensorList.push(prediction.dataSync()[action] + learningRate * (reward() + discountRate * Math.max.apply(null, currentPrediction.dataSync()) - prediction.dataSync()[action]));
         }
         prediction.dispose();
         currentPrediction.dispose();
-        return tf.tensor(newTensorList, [1, availableActions.length]);
+        const newQ = tf.tensor(newTensorList, [1, availableActions.length]);
+        return newQ;
     });
 }
 
@@ -137,17 +96,11 @@ currentState = getCurrentState();
 
 var lastDistanceBetweenFeet = getDistBetweenFeet();
 
-//async function waitForFitting(newQ) {
-//    var result = await model.fit(oldState, newQ);
-//}
 function waitForFitting(newQ) {
-
     return async () => {
         await model.fit(oldState,newQ).dispose()
-};
-    //result.dispose();
+    };
 }
-
 
 
 function playGame() {
@@ -198,13 +151,9 @@ function playGame() {
             lastDeathCount = deathCount;
         }
 
-        explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
+        if (explorationRate != minExplorationRate)
+            explorationRate = minExplorationRate + Math.exp(-decayRate * deathCount) * (maxExplorationRate - minExplorationRate);
 
 
     }, 100);
-
-    if (deathCount > 1000) {
-        clearInterval(gameLoop);
-        return;
-    }
 }
