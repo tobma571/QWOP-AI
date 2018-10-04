@@ -39,9 +39,14 @@
                 <a href="javascript:void(0);" id="download-qnn" onclick="downloadQnn()">Download QNN</a>
             </p>
         </div>
+
         <div id="rewardDecisionContainer">
             <input type="number" id="rewardFunctionDecision">
             <input type="submit" id="rewardSubmitter" onclick="changeReward()">
+        </div>
+
+        <div id="playButtonContainer">
+            <input type="submit" id="playButton" onclick="startGame()">
         </div>
 
 
@@ -52,7 +57,9 @@
         <script src = "lib/matter-js/build/matter.js"></script>
         <script src="js/plugins.js"></script>
         <script src="js/lib/Box2d-min.js"></script>
-        <script src="js/game.js"></script><!--
+        <script src="js/game.js"></script>
+        <script src="js/config.js"></script>
+        <!--
         <script src="js/gameAgent.js"></script> -->
         <script src="js/tensorTest.js"></script>
         <script src="js/qTableFileHandling.js"></script>
