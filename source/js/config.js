@@ -1,6 +1,6 @@
 const goalDistance = 100;
 const availableActions = [0, 1, 2, 4, 6, 8, 9];
-const minExplorationRate = 0.01;
+const minExplorationRate = 0.1;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
 const decayRate = 0.001;
@@ -37,7 +37,7 @@ function createModel() {
 }
 
 function changeReward() {
-    rewardFunction = document.getElementById("rewardFunctionDecision").value;
+    rewardFunction = parseInt(document.getElementById("rewardFunctionDecision").value);
 }
 
 function startGame() {

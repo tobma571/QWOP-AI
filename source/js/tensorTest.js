@@ -19,8 +19,6 @@ function getCurrentState() {
 function reward() {
     if (deathCount > lastDeathCount) return -10;
     switch (rewardFunction) {
-        case 0:
-            return reward1();
         case 1:
             return reward1();
         case 2:
@@ -33,6 +31,8 @@ function reward() {
             return reward5();
         case 6:
             return reward6();
+        default:
+            return reward1();
     }
 }
 
