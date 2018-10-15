@@ -1,6 +1,6 @@
 const goalDistance = 100;
 const availableActions = [0, 1, 2, 4, 6, 8, 9];
-const minExplorationRate = 0.1;
+const minExplorationRate = 0.01;
 const maxExplorationRate = 1.0;
 var explorationRate = maxExplorationRate;
 const decayRate = 0.001;
@@ -15,7 +15,7 @@ function createModel() {
 
     const hiddenLayer1 = tf.layers.dense({
         units: 10,
-        inputShape: [2],
+        inputShape: [5],
         activation: 'relu'
     });
 

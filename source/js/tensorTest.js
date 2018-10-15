@@ -12,8 +12,12 @@ function randomizeAction() {
     return Math.round(Math.random() * (availableActions.length - 1));
 }
 
-function getCurrentState() {
+function getCurrentState2() {
     return tf.tensor([getDistBetweenFeet(), body.torso.GetAngle()], [1, 2]);
+}
+
+function getCurrentState() {
+    return tf.tensor([l_kneeAngle, r_kneeAngle, l_hipAngle, r_hipAngle, body.torso.GetAngle()], [1, 5]);
 }
 
 function reward() {
