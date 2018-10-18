@@ -35,6 +35,8 @@ function reward() {
             return reward5();
         case 6:
             return reward6();
+        case 7:
+            return reward7();
         default:
             return reward1();
     }
@@ -77,6 +79,18 @@ function reward6() {
     return dx + feetReward + closenessToGoal;
 }
 
+//Function that punishes doing the same move over and over and over
+var sameMoves = 0;
+function reward7() {
+    const dx = 5 * (totalDistTraveled - lastStepDistance);
+    const feetReward = totalStepsTraveled - lastTotalStepsTraveled;
+    lastTotalStepsTraveled = totalStepsTraveled;
+    const closenessToGoal = totalDistTraveled / goalDistance;
+    sameMoves += newAction === prevAction ? 1 : -sameMoves;
+    // Sigmoid function on sameMoves
+    return dx + feetReward + closenessToGoal - Math.exp(1 / (-0.5 * sameMoves - 10));
+}
+
 function newQforAction(prediction, action) {
    return tf.tidy(() => {
         const currentPrediction = model.predict(currentState);
@@ -106,6 +120,8 @@ function waitForFitting(newQ) {
     };
 }
 
+var prevAction = -1;
+var newAction;
 
 function playGame() {
     var promise = Promise.resolve(true);
@@ -116,7 +132,6 @@ function playGame() {
 
         var shouldExplore = Math.random() < explorationRate;
 
-        var newAction;
         var prediction = tf.tidy(() => {return model.predict(currentState)});
 
         if (shouldExplore) {
@@ -141,6 +156,8 @@ function playGame() {
             newQ.dispose();
 
         var newQ = newQforAction(prediction, newAction);
+
+        newAction = prevAction;
 
         prediction.dispose();
 
